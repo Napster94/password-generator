@@ -16,7 +16,7 @@ app.add_middleware(
 )
 
 # Initialize local text-generation pipeline
-generator = pipeline("text-generation", model="distilgpt2")
+generator = pipeline("text-generation", model="sshleifer/tiny-gpt2")
 
 @app.get("/")
 def read_root():

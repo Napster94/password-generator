@@ -22,15 +22,22 @@ def generate_password(length: int = 12):
 
 @app.get("/fun-fact")
 async def get_fun_fact():
-    prompt = "Give me one short fun historical or cultural fact about Zahlé, Lebanon. Keep it under 2 sentences."
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=60,
-        temperature=0.8
-    )
-    fact = response.choices[0].message["content"].strip()
-    return {"fact": fact}
+    try:
+        if not openai.api_key:
+            return {"error": "Missing OpenAI API key on server."}
+
+        prompt = "Give me one short fun historical or cultural fact about Zahlé, Lebanon. Keep it under 2 sentences."
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=60,
+            temperature=0.8
+        )
+        fact = response.choices[0].message["content"].strip()
+        return {"fact": fact}
+    except Exception as e:
+        return {"error": str(e)}
+
 
 
 @app.get("/places")

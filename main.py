@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import secrets
 import string
-import openai
+from openai import OpenAI
 
 app = FastAPI()
 
@@ -16,8 +16,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load OpenAI API key from environment
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Initialize OpenAI client (new 1.x SDK syntax)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 
 @app.get("/generate-password")
 def generate_password(length: int = 12):
@@ -25,11 +26,12 @@ def generate_password(length: int = 12):
     password = ''.join(secrets.choice(characters) for _ in range(length))
     return {"password": password}
 
+
 @app.get("/fun-fact")
 def fun_fact():
     prompt = "Give me one short fun historical or cultural fact about Zahlé, Lebanon. Keep it under 2 sentences."
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.8,
@@ -37,14 +39,17 @@ def fun_fact():
         )
         fact = response.choices[0].message.content.strip()
         return {"fact": fact}
+
     except Exception as e:
+        print("OpenAI Error in /fun-fact:", e)
         return {"fact": "Could not fetch fun fact at the moment. Please try again later."}
+
 
 @app.get("/places")
 def places():
     prompt = "List 5 must-visit places in Zahlé, Lebanon. Return only names in a numbered list."
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.8,
@@ -53,5 +58,7 @@ def places():
         text = response.choices[0].message.content.strip()
         places = [line.split('. ', 1)[1] if '. ' in line else line for line in text.split('\n') if line]
         return {"places": places}
+
     except Exception as e:
+        print("OpenAI Error in /places:", e)
         return {"places": ["Could not fetch places at the moment. Please try again later."]}
